@@ -205,19 +205,19 @@
 
     // Generate CSV content
     function generateCSV(results) {
-      const lines = ['Initiative1,Initiative2,Initiative3,Final_RPV,Responsible Structure,Responsible Envelope,Responsible Systems,Responsible Finishes'];
+      const lines = ['Initiative,Final_RPV,structure,envelope,systems,finishes'];
 
       for (const result of results) {
-        const init1 = `"${(result.initiatives[0] || '').replace(/"/g, '""')}"`;
-        const init2 = `"${(result.initiatives[1] || '').replace(/"/g, '""')}"`;
-        const init3 = `"${(result.initiatives[2] || '').replace(/"/g, '""')}"`;
+        // Combine initiatives with ' + ', filtering out empty ones
+        const combinedInitiatives = result.initiatives.filter(i => i).join(' + ');
+        const initCell = `"${combinedInitiatives.replace(/"/g, '""')}"`;
 
         const respStructure = getPracticeLevel(result.rpv, PRACTICE_THRESHOLDS.structure);
         const respEnvelope = getPracticeLevel(result.rpv, PRACTICE_THRESHOLDS.envelope);
         const respSystems = getPracticeLevel(result.rpv, PRACTICE_THRESHOLDS.systems);
         const respFinishes = getPracticeLevel(result.rpv, PRACTICE_THRESHOLDS.finishes);
 
-        lines.push(`${init1},${init2},${init3},${result.rpv},${respStructure},${respEnvelope},${respSystems},${respFinishes}`);
+        lines.push(`${initCell},${result.rpv},${respStructure},${respEnvelope},${respSystems},${respFinishes}`);
       }
 
       return lines.join('\n');
