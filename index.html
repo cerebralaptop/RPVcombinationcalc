@@ -188,15 +188,36 @@
       return combinations;
     }
 
+    // Practice level thresholds for each Responsible category
+    const PRACTICE_THRESHOLDS = {
+      structure: { best: 15, good: 10 },
+      envelope: { best: 15, good: 10 },
+      systems: { best: 11, good: 6 },
+      finishes: { best: 12, good: 7 }
+    };
+
+    // Determine practice level based on RPV and thresholds
+    function getPracticeLevel(rpv, thresholds) {
+      if (rpv >= thresholds.best) return 'Best Practice';
+      if (rpv >= thresholds.good) return 'Good Practice';
+      return 'Not met';
+    }
+
     // Generate CSV content
     function generateCSV(results) {
-      const lines = ['Initiative1,Initiative2,Initiative3,Final_RPV'];
+      const lines = ['Initiative1,Initiative2,Initiative3,Final_RPV,Responsible Structure,Responsible Envelope,Responsible Systems,Responsible Finishes'];
 
       for (const result of results) {
         const init1 = `"${(result.initiatives[0] || '').replace(/"/g, '""')}"`;
         const init2 = `"${(result.initiatives[1] || '').replace(/"/g, '""')}"`;
         const init3 = `"${(result.initiatives[2] || '').replace(/"/g, '""')}"`;
-        lines.push(`${init1},${init2},${init3},${result.rpv}`);
+
+        const respStructure = getPracticeLevel(result.rpv, PRACTICE_THRESHOLDS.structure);
+        const respEnvelope = getPracticeLevel(result.rpv, PRACTICE_THRESHOLDS.envelope);
+        const respSystems = getPracticeLevel(result.rpv, PRACTICE_THRESHOLDS.systems);
+        const respFinishes = getPracticeLevel(result.rpv, PRACTICE_THRESHOLDS.finishes);
+
+        lines.push(`${init1},${init2},${init3},${result.rpv},${respStructure},${respEnvelope},${respSystems},${respFinishes}`);
       }
 
       return lines.join('\n');
