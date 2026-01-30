@@ -60,7 +60,7 @@
 
     // Parse raw data to build initiative -> credit -> points mapping and initiative -> applicant mapping
     function parseRawData(rows) {
-      const initiativeCredits = {}; // initiative -> credit -> max points
+      const initiativeCredits = {}; // initiative -> credit -> sum of points
       const initiativeApplicants = {}; // initiative -> applicant name
 
       // Find column indices (handle variations in column names)
@@ -103,10 +103,11 @@
           initiativeCredits[initiative] = {};
         }
 
-        // Keep max points per credit
-        if (!initiativeCredits[initiative][credit] || points > initiativeCredits[initiative][credit]) {
-          initiativeCredits[initiative][credit] = points;
+        // Sum all points per credit (each row is a sub-credit)
+        if (!initiativeCredits[initiative][credit]) {
+          initiativeCredits[initiative][credit] = 0;
         }
+        initiativeCredits[initiative][credit] += points;
 
         // Store applicant (first non-empty one found)
         if (applicant && !initiativeApplicants[initiative]) {
