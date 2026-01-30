@@ -178,12 +178,16 @@
         }
       }
 
-      // Triples (all three must be cross-family AND cross-applicant, excluding Best Practice singles)
+      // Triples (all three must be cross-family AND cross-applicant, excluding Best Practice singles/pairs)
       for (let i = 0; i < combinableInitiatives.length; i++) {
         for (let j = i + 1; j < combinableInitiatives.length; j++) {
           const init1 = combinableInitiatives[i];
           const init2 = combinableInitiatives[j];
           if (!canCombine(init1, init2, familyMap, applicantMap)) continue;
+
+          // Skip if pair already achieves Best Practice (no benefit to adding a third)
+          const pairRpv = calculateRPV([init1, init2], initiativeCredits, allCredits);
+          if (pairRpv >= BEST_PRACTICE_RPV) continue;
 
           for (let k = j + 1; k < combinableInitiatives.length; k++) {
             const init3 = combinableInitiatives[k];
