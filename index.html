@@ -147,35 +147,46 @@
       return true;
     }
 
+    // Best Practice RPV threshold (highest of all categories)
+    const BEST_PRACTICE_RPV = 15;
+
     // Generate all valid combinations
-    function generateCombinations(initiatives, familyMap, applicantMap) {
+    function generateCombinations(initiatives, familyMap, applicantMap, initiativeCredits, allCredits) {
       const combinations = [];
 
-      // Singles
+      // Calculate RPV for each single initiative and identify Best Practice singles
+      const bestPracticeSingles = new Set();
       for (const init of initiatives) {
+        const rpv = calculateRPV([init], initiativeCredits, allCredits);
         combinations.push([init]);
+        if (rpv >= BEST_PRACTICE_RPV) {
+          bestPracticeSingles.add(init);
+        }
       }
 
-      // Pairs (cross-family AND cross-applicant)
-      for (let i = 0; i < initiatives.length; i++) {
-        for (let j = i + 1; j < initiatives.length; j++) {
-          const init1 = initiatives[i];
-          const init2 = initiatives[j];
+      // Filter out Best Practice singles for pairs/triples (no benefit to combining them)
+      const combinableInitiatives = initiatives.filter(init => !bestPracticeSingles.has(init));
+
+      // Pairs (cross-family AND cross-applicant, excluding Best Practice singles)
+      for (let i = 0; i < combinableInitiatives.length; i++) {
+        for (let j = i + 1; j < combinableInitiatives.length; j++) {
+          const init1 = combinableInitiatives[i];
+          const init2 = combinableInitiatives[j];
           if (canCombine(init1, init2, familyMap, applicantMap)) {
             combinations.push([init1, init2]);
           }
         }
       }
 
-      // Triples (all three must be cross-family AND cross-applicant)
-      for (let i = 0; i < initiatives.length; i++) {
-        for (let j = i + 1; j < initiatives.length; j++) {
-          const init1 = initiatives[i];
-          const init2 = initiatives[j];
+      // Triples (all three must be cross-family AND cross-applicant, excluding Best Practice singles)
+      for (let i = 0; i < combinableInitiatives.length; i++) {
+        for (let j = i + 1; j < combinableInitiatives.length; j++) {
+          const init1 = combinableInitiatives[i];
+          const init2 = combinableInitiatives[j];
           if (!canCombine(init1, init2, familyMap, applicantMap)) continue;
 
-          for (let k = j + 1; k < initiatives.length; k++) {
-            const init3 = initiatives[k];
+          for (let k = j + 1; k < combinableInitiatives.length; k++) {
+            const init3 = combinableInitiatives[k];
             // Check init3 can combine with both init1 and init2
             if (canCombine(init1, init3, familyMap, applicantMap) &&
                 canCombine(init2, init3, familyMap, applicantMap)) {
@@ -279,8 +290,8 @@
 
           setProgress({ current: 0, total: 0, phase: 'Generating combinations...' });
 
-          // Generate combinations (excluding same-family and same-applicant)
-          const combinations = generateCombinations(initiatives, familyMap, initiativeApplicants);
+          // Generate combinations (excluding same-family, same-applicant, and Best Practice singles)
+          const combinations = generateCombinations(initiatives, familyMap, initiativeApplicants, initiativeCredits, creditsArray);
 
           setStats({
             initiatives: initiatives.length,
